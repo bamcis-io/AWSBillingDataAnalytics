@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2018
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{22325025-CDA3-4736-83CB-2D32D2FCC215}") = "AthenaQueries", "AthenaQueries\AthenaQueries.cfproj", "{99999999-9999-9999-9999-999999999999}"
+EndProject
+Project("{22325025-CDA3-4736-83CB-2D32D2FCC215}") = "BillingDataInfrastructure", "BillingDataInfrastructure\BillingDataInfrastructure.cfproj", "{2B61E284-967D-40E7-9CF9-EF574222F522}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1D402E2B-223F-4073-9998-EF21D696D184}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{99999999-9999-9999-9999-999999999999}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{99999999-9999-9999-9999-999999999999}.Debug|x86.ActiveCfg = Debug|x86
+		{99999999-9999-9999-9999-999999999999}.Debug|x86.Build.0 = Debug|x86
+		{99999999-9999-9999-9999-999999999999}.Release|Any CPU.ActiveCfg = Release|x86
+		{99999999-9999-9999-9999-999999999999}.Release|x86.ActiveCfg = Release|x86
+		{99999999-9999-9999-9999-999999999999}.Release|x86.Build.0 = Release|x86
+		{2B61E284-967D-40E7-9CF9-EF574222F522}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{2B61E284-967D-40E7-9CF9-EF574222F522}.Debug|x86.ActiveCfg = Debug|x86
+		{2B61E284-967D-40E7-9CF9-EF574222F522}.Debug|x86.Build.0 = Debug|x86
+		{2B61E284-967D-40E7-9CF9-EF574222F522}.Release|Any CPU.ActiveCfg = Release|x86
+		{2B61E284-967D-40E7-9CF9-EF574222F522}.Release|x86.ActiveCfg = Release|x86
+		{2B61E284-967D-40E7-9CF9-EF574222F522}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {52061161-DAB1-4C3D-B2BC-A6F0AB11D30C}
+	EndGlobalSection
+EndGlobal

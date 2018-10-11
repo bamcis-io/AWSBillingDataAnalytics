@@ -1,0 +1,666 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    
+	"Description"              : "Creates the AWS Glue resources to query billing data and price list data with Athena",
+    
+	"Parameters"               : {
+        "PriceListBucket" : {
+            "Description" : "The bucket where the price list data is stored. This bucket should already exist.",
+            "Type"        : "String",
+            "MinLength"   : 3,
+            "MaxLength"   : 63,
+            "AllowedPattern" : "^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+            "ConstraintDescription" : "Member must satisfy regular expression pattern: ^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+            "Default"               : "mhaken-pricelist"
+        },
+        "BillingFileBucket" : {
+            "Description" : "The bucket where the billing files are stored. Separate each account in a different folder. This bucket should already exist.",
+            "Type"        : "String",
+            "MinLength"   : 3,
+            "MaxLength"   : 63,
+            "AllowedPattern" : "^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+            "ConstraintDescription" : "Member must satisfy regular expression pattern: ^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+            "Default"               : "mhaken-billing-repo"
+        },
+        "FormattedBillingFileBucketName" : {
+            "Description" : "The bucket where the billing files will be stored after the Glue ETL job.",
+            "Type"        : "String",
+            "MinLength"   : 3,
+            "MaxLength"   : 63,
+            "AllowedPattern" : "^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+            "ConstraintDescription" : "Member must satisfy regular expression pattern: ^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+            "Default"               : "mhaken-billing-formatted"
+        },
+        "DatabaseName"                   : {
+            "Description" : "The name of the glue database that will be created",
+            "Type"        : "String",
+            "AllowedPattern" : "[a-z]*",
+            "Default"        : "billingdata"
+        },
+        "PriceListDataTableName"         : {
+            "Type" : "String",
+            "Default" : "reservedinstancepricelistdata",
+            "MinLength" : 1
+        },
+        "FormattedCURTableName"      : {
+            "Type" : "String",
+            "Default" : "cur_formatted",
+            "MinLength" : 1
+        }
+    },
+
+
+    "Resources"                : {
+        "AWSGlueServiceRole" : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+                    "Version" : "2012-10-17",
+                    "Statement" : [
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "sts:AssumeRole"
+                            ],
+                            "Principal" : {
+                                "Service" : [
+                                    "glue.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns"        : [
+                    "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+                ]
+            }
+        },
+        "GlueS3Policy"       : {
+            "Type" : "AWS::IAM::Policy",
+            "Properties" : {
+                "PolicyName" : "GlueS3Policy",
+                "PolicyDocument" : {
+                    "Version" : "2012-10-17",
+                    "Statement" : [
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "s3:GetObject",
+                                "s3:PutObject",
+                                "s3:DeleteObject"
+                            ],
+                            "Resource" : [
+                                {
+                                    "Fn::Sub" : "arn:aws:s3:::${FormattedBillingFileS3Bucket}/*"
+                                }
+                            ]
+                        },
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "s3:GetObject"
+                            ],
+                            "Resource" : [
+                                {
+                                    "Fn::Sub" : "arn:aws:s3:::${BillingFileBucket}/*"
+                                },
+                                {
+                                    "Fn::Sub" : "arn:aws:s3:::${PriceListBucket}/*"
+                                }
+                            ]
+                        },
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "s3:ListBucket",
+                                "s3:GetBucketLocation"
+                            ],
+                            "Resource" : [
+                                {
+                                    "Fn::Sub" : "arn:aws:s3:::${PriceListBucket}"
+                                },
+                                {
+                                    "Fn::Sub" : "arn:aws:s3:::${BillingFileBucket}"
+                                },
+                                {
+                                    "Fn::Sub" : "arn:aws:s3:::${FormattedBillingFileS3Bucket}"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Roles"          : [
+                    {
+                        "Ref" : "AWSGlueServiceRole"
+                    }
+                ]
+            }
+        },
+
+        "FormattedBillingFileS3Bucket" : {
+            "Type" : "AWS::S3::Bucket",
+            "Properties" : {
+                "BucketName" : {
+                    "Ref" : "FormattedBillingFileBucketName"
+                }
+            }
+        },
+        "FormattedBillingFileS3BucketPolicy" : {
+            "Type" : "AWS::S3::BucketPolicy",
+            "Properties" : {
+                "Bucket" : {
+                    "Ref" : "FormattedBillingFileS3Bucket"
+                },
+                "PolicyDocument" : {
+                    "Version" : "2008-10-17",
+                    "Id"      : "1",
+                    "Statement" : [
+                        {
+                            "Sid" : "1",
+                            "Effect" : "Deny",
+                            "Principal" : "*",
+                            "Action"    : [
+                                "s3:PutObject",
+                                "s3:DeleteObject"
+                            ],
+                            "Resource"  : {
+                                "Fn::Sub" : "arn:aws:s3:::${FormattedBillingFileS3Bucket}/*"
+                            },
+                            "Condition" : {
+                                "StringNotLike" : {
+                                    "aws:UserId" : [
+                                        {
+                                            "Fn::Sub" : "${AWSGlueServiceRole.RoleId}:*"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+
+        "GlueDatabase"                       : {
+            "Type" : "AWS::Glue::Database",
+            "Properties" : {
+                "CatalogId" : {
+                    "Ref" : "AWS::AccountId"
+                },
+                "DatabaseInput" : {
+                    "Description" : "BillingData",
+                    "Name"        : {
+                        "Ref" : "DatabaseName"
+                    }
+                }
+            }
+        },
+        "ReservedInstancePriceListTable"     : {
+            "Type" : "AWS::Glue::Table",
+            "Properties" : {
+                "CatalogId" : {
+                    "Ref" : "AWS::AccountId"
+                },
+                "DatabaseName" : {
+                    "Ref" : "DatabaseName"
+                },
+                "TableInput"   : {
+                    "Name" : {
+                        "Ref" : "PriceListDataTableName"
+                    },
+                    "Description" : "Contains price list Api data about reserved instances.",
+                    "Parameters"  : {
+                        "EXTERNAL" : "TRUE",
+                        "classification" : "csv",
+                        "columnsOrdered" : "true",
+                        "delimiter"      : "|",
+                        "skip.header.line.count" : "1",
+                        "typeOfData"             : "file"
+                    },
+                    "TableType"   : "EXTERNAL_TABLE",
+                    "StorageDescriptor" : {
+                        "InputFormat" : "org.apache.hadoop.mapred.TextInputFormat",
+                        "Location"    : {
+                            "Fn::Sub" : "s3://${PriceListBucket}/"
+                        },
+                        "OutputFormat" : "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+                        "SerdeInfo"    : {
+                            "Name" : "LazySimpleSerDe",
+                            "SerializationLibrary" : "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+                            "Parameters"           : {
+                                "field.delim" : "|",
+                                "serialization.format" : "|"
+                            }
+                        },
+                        "Columns"      : [
+                            {
+                                "Name" : "sku",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "offertermcode",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "platform",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "tenancy",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "operation",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "usagetype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "region",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "service",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "instancetype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "operatingsystem",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "adjustedpriceperunit",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "ondemandhourlycost",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "breakevenpercentage",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "upfrontfee",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "leaseterm",
+                                "Type" : "bigint"
+                            },
+                            {
+                                "Name" : "purchaseoption",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "offeringclass",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "termtype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "key",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "reservedinstancecost",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "ondemandcostforterm",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "costsavings",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "percentsavings",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "vcpu",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "memory",
+                                "Type" : "double"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "FormattedBillingDataTable"          : {
+            "Type" : "AWS::Glue::Table",
+            "Properties" : {
+                "CatalogId" : {
+                    "Ref" : "AWS::AccountId"
+                },
+                "DatabaseName" : {
+                    "Ref" : "DatabaseName"
+                },
+                "TableInput"   : {
+                    "Name" : {
+                        "Ref" : "FormattedCURTableName"
+                    },
+                    "Description" : "Contains formatted cost and usage report data.",
+                    "Parameters"  : {
+                        "EXTERNAL" : "TRUE",
+                        "classification" : "parquet",
+                        "compressionType" : "none",
+                        "typeOfData"      : "file"
+                    },
+                    "TableType"   : "EXTERNAL_TABLE",
+                    "PartitionKeys" : [
+                        {
+                            "Name" : "bill_payeraccountid",
+                            "Type" : "string"
+                        },
+                        {
+                            "Name" : "billingperiod",
+                            "Type" : "date"
+                        },
+                        {
+                            "Name" : "lineitem_usageaccountid",
+                            "Type" : "string"
+                        },
+                        {
+                            "Name" : "product_region",
+                            "Type" : "string"
+                        }
+                    ],
+                    "StorageDescriptor" : {
+                        "InputFormat" : "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+                        "Location"    : {
+                            "Fn::Sub" : "s3://${FormattedBillingFileS3Bucket}/"
+                        },
+                        "OutputFormat" : "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+                        "SerdeInfo"    : {
+                            "Name" : "ParquetHiveSerDe",
+                            "SerializationLibrary" : "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
+                            "Parameters"           : {
+                                "serialization.format" : "1"
+                            }
+                        },
+                        "Columns"      : [
+                            {
+                                "Name" : "bill_invoiceid",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "bill_billtype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "bill_billingperiodstartdate",
+                                "Type" : "timestamp"
+                            },
+                            {
+                                "Name" : "bill_billingperiodenddate",
+                                "Type" : "timestamp"
+                            },
+                            {
+                                "Name" : "lineitem_lineitemtype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "lineitem_usagestartdate",
+                                "Type" : "timestamp"
+                            },
+                            {
+                                "Name" : "lineitem_usageenddate",
+                                "Type" : "timestamp"
+                            },
+                            {
+                                "Name" : "lineitem_productcode",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "lineitem_usagetype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "lineitem_operation",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "lineitem_availabilityzone",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "lineitem_resourceid",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "lineitem_usageamount",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "lineitem_normalizationfactor",
+                                "Type" : "bigint"
+                            },
+                            {
+                                "Name" : "lineitem_normalizedusageamount",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "lineitem_unblendedrate",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "lineitem_unblendedcost",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "lineitem_blendedrate",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "lineitem_blendedcost",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "lineitem_lineitemdescription",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_productname",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_description",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_instancetype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_operatingsystem",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_location",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_locationtype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_operation",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_productfamily",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_servicecode",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_servicename",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_sku",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_tenancy",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_transfertype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_usagetype",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "product_version",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "pricing_publicondemandcost",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "pricing_publicondemandrate",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "pricing_term",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "pricing_unit",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "reservation_amortizedupfrontcostforusage",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "reservation_amortizedupfrontfeeforbillingperiod",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "reservation_effectivecost",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "reservation_endtime",
+                                "Type" : "timestamp"
+                            },
+                            {
+                                "Name" : "reservation_modificationstatus",
+                                "Type" : "string"
+                            },
+                            {
+                                "Name" : "reservation_normalizedunitsperreservation",
+                                "Type" : "bigint"
+                            },
+                            {
+                                "Name" : "reservation_recurringfeeforusage",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "reservation_starttime",
+                                "Type" : "timestamp"
+                            },
+                            {
+                                "Name" : "reservation_totalreservednormalizedunits",
+                                "Type" : "bigint"
+                            },
+                            {
+                                "Name" : "reservation_totalreservedunits",
+                                "Type" : "bigint"
+                            },
+                            {
+                                "Name" : "reservation_unitsperreservation",
+                                "Type" : "bigint"
+                            },
+                            {
+                                "Name" : "reservation_unusedamortizedupfrontfeeforbillingperiod",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "reservation_unusednormalizedunitquantity",
+                                "Type" : "bigint"
+                            },
+                            {
+                                "Name" : "reservation_unusedquantity",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "reservation_unusedrecurringfee",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "reservation_upfrontvalue",
+                                "Type" : "double"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+
+		"CreateReservedInstancePriceListApiTable" : {
+            "Type" : "AWS::Athena::NamedQuery",
+            "Properties" : {
+                "Database" : {
+                    "Ref" : "GlueDatabase"
+                },
+                "Description" : "Loads missing partitions from the formatted CUR data table.",
+                "Name"        : "BD-CURFormatted-LoadPartitions",
+                "QueryString" : {
+                    "Fn::Sub" : "MSCK REPAIR TABLE `${GlueDatabase}`.`${FormattedCURTableName}`"
+                }
+            }
+        },
+
+        "BillingFileModificationJob"              : {
+            "Type" : "AWS::Glue::Job",
+            "Properties" : {
+                "Role" : {
+                    "Ref" : "AWSGlueServiceRole"
+                },
+                "DefaultArguments" : {
+                    "--job-bookmark-option" : "job-bookmark-enable",
+                    "--enable-metrics"      : "",
+                    "--TempDir"             : {
+                        "Fn::Sub" : "s3://aws-glue-temporary-${AWS::AccountId}-${AWS::Region}"
+                    }
+                },
+                "ExecutionProperty" : {
+                    "MaxConcurrentRuns" : 1
+                },
+                "MaxRetries"        : 0,
+                "Name"              : "CUR File ETL",
+                "Description"       : "Performs an ETL on CUR data",
+                "Command"           : {
+                    "Name" : "glueetl",
+                    "ScriptLocation" : {
+                        "Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl.py"
+                    }
+                }
+            }
+        }
+    },
+
+
+    "Outputs"                  : {
+    }
+}

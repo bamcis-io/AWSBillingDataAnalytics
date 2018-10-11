@@ -1,0 +1,536 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description"              : "Creates the AWS Glue resources to query billing data and price list data with Athena",
+
+    "Parameters"               : {
+        "PriceListBucket" : {
+            "Description" : "The bucket where the price list data is stored. This bucket should already exist.",
+            "Type"        : "String",
+            "MinLength"   : 3,
+            "MaxLength"   : 63,
+            "AllowedPattern" : "^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+            "ConstraintDescription" : "Member must satisfy regular expression pattern: ^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+			"Default" : "mhaken-pricelist"
+        },
+        "BillingFileBucket" : {
+            "Description" : "The bucket where the billing files are stored. Separate each account in a different folder. This bucket should already exist.",
+            "Type"        : "String",
+            "MinLength"   : 3,
+            "MaxLength"   : 63,
+            "AllowedPattern" : "^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+            "ConstraintDescription" : "Member must satisfy regular expression pattern: ^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+			"Default" : "mhaken-billing-repo"
+        },
+		"FormattedBillingFileBucketName" : {
+            "Description" : "The bucket where the billing files will be stored after the Glue ETL job.",
+            "Type"        : "String",
+            "MinLength"   : 3,
+            "MaxLength"   : 63,
+            "AllowedPattern" : "^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+            "ConstraintDescription" : "Member must satisfy regular expression pattern: ^[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]$",
+			"Default" : "mhaken-billing-formatted"
+        },
+        "DatabaseName"      : {
+            "Description" : "The name of the glue database that will be created",
+			"Type" : "String",
+            "AllowedPattern" : "[a-z]*",
+            "Default"        : "billingdata"
+        },
+		"PriceListDataTableName" : {
+			"Type" : "String",
+			"Default": "reservedinstancepricelistdata",
+			"MinLength" : 1
+		},
+		"CURDataTableName" : {
+			"Type" : "String",
+			"Default": "currawdata",
+			"MinLength" : 1
+		}
+    },
+
+    "Resources"                : {
+        "AWSGlueServiceRole" : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+                    "Version" : "2012-10-17",
+                    "Statement" : [
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "sts:AssumeRole"
+                            ],
+                            "Principal" : {
+                                "Service" : [
+                                    "glue.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns"        : [
+                    "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+                ]
+            }
+        },
+        "GlueS3Policy"    : {
+            "Type" : "AWS::IAM::Policy",
+            "Properties" : {
+                "PolicyName" : "GlueS3Policy",
+                "PolicyDocument" : {
+                    "Version" : "2012-10-17",
+                    "Statement" : [
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "s3:GetObject",
+								"s3:PutObject",
+								"s3:DeleteObject"
+                            ],
+                            "Resource" : [
+								{
+                                    "Fn::Sub" :  "arn:aws:s3:::${FormattedBillingFileS3Bucket}/*"
+                                }
+                            ]
+                        },
+						{
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "s3:GetObject"
+                            ],
+                            "Resource" : [
+							    {
+                                    "Fn::Sub" :  "arn:aws:s3:::${BillingFileBucket}/*"							
+                                },
+                                {
+									"Fn::Sub" :  "arn:aws:s3:::${PriceListBucket}/*"								                                  
+                                }
+                            ]
+                        },
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "s3:ListBucket",
+                                "s3:GetBucketLocation"
+                            ],
+                            "Resource" : [
+                                {
+									"Fn::Sub" :  "arn:aws:s3:::${PriceListBucket}"								                                  
+                                },
+                                {
+                                    "Fn::Sub" :  "arn:aws:s3:::${BillingFileBucket}"							
+                                },
+								{
+                                    "Fn::Sub" :  "arn:aws:s3:::${FormattedBillingFileS3Bucket}"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Roles"          : [
+                    {
+                        "Ref" : "AWSGlueServiceRole"
+                    }
+                ]
+            }
+        },
+
+		"FormattedBillingFileS3Bucket" : {
+            "Type" : "AWS::S3::Bucket",
+            "Properties" : {
+			    "BucketName" : {
+					"Ref" : "FormattedBillingFileBucketName"
+				}
+            }
+        },
+
+		"FormattedBillingFileS3BucketPolicy" : {
+            "Type" : "AWS::S3::BucketPolicy",
+            "Properties" : {
+                "Bucket" : {
+                    "Ref" : "FormattedBillingFileS3Bucket"
+                },
+                "PolicyDocument" : {
+                    "Version" : "2008-10-17",
+                    "Id"      : "1",
+                    "Statement" : [
+                        {
+                            "Sid" : "1",
+                            "Effect" : "Deny",
+                            "Principal" : "*",
+                            "Action"    : [
+                                "s3:PutObject",
+                                "s3:DeleteObject"
+                            ],
+                            "Resource"  : {
+								"Fn::Sub" : "arn:aws:s3:::${FormattedBillingFileS3Bucket}/*"								
+							},
+							"Condition" : {
+								"StringNotLike" : {
+									"aws:UserId" : [
+										{
+											"Fn::Sub" : "${AWSGlueServiceRole.RoleId}:*"
+										}
+									]
+								}
+							}
+                        }
+                    ]
+                }
+            }
+        },
+
+        "PriceListGlueCrawler" : {
+            "Type" : "AWS::Glue::Crawler",
+            "Properties" : {
+                "DatabaseName" : {
+                    "Ref" : "GlueDatabase"
+                },
+                "Description"  : "Crawls the price list data",
+                "Name"         : "PriceListDataCrawler",
+                "Targets"      : {
+                    "S3Targets" : [
+                        {
+                            "Path" : {
+								"Fn::Sub" : "s3://${PriceListBucket}"                               
+                            }
+                        }
+                    ]
+                },
+                "Role"         : {
+                    "Fn::GetAtt" : [
+                        "AWSGlueServiceRole",
+                        "Arn"
+                    ]
+                }
+            }
+        },
+        "BillingFileGlueCrawler" : {
+            "Type" : "AWS::Glue::Crawler",
+            "Properties" : {
+                "DatabaseName" : {
+                    "Ref" : "GlueDatabase"
+                },
+                "Description"  : "Crawls the billing file data",
+                "Name"         : "BillingFileDataCrawler",
+                "Targets"      : {
+                    "S3Targets" : [
+                        {
+                            "Path" : {
+								"Fn::Sub" : "s3://${BillingFileBucket}"                             
+                            },
+							"Exclusions" : [
+								"**.json",
+								"**.zip"
+							]
+                        }
+                    ]
+                },
+                "Role"         : {
+                    "Fn::GetAtt" : [
+                        "AWSGlueServiceRole",
+                        "Arn"
+                    ]
+                }
+            }
+        },
+		"FormattedBillingFileGlueCrawler" : {
+            "Type" : "AWS::Glue::Crawler",
+            "Properties" : {
+                "DatabaseName" : {
+                    "Ref" : "GlueDatabase"
+                },
+                "Description"  : "Crawls the formatted billing file data",
+                "Name"         : "FormattedBillingFileDataCrawler",
+                "Targets"      : {
+                    "S3Targets" : [
+                        {
+                            "Path" : {
+								"Fn::Sub" : "s3://${FormattedBillingFileS3Bucket}"                               
+                            }
+                        }
+                    ]
+                },
+                "Role"         : {
+                    "Fn::GetAtt" : [
+                        "AWSGlueServiceRole",
+                        "Arn"
+                    ]
+                }
+            }
+        },
+        "GlueDatabase"           : {
+            "Type" : "AWS::Glue::Database",
+            "Properties" : {
+                "CatalogId" : {
+                    "Ref" : "AWS::AccountId"
+                },
+                "DatabaseInput" : {
+                    "Description" : "BillingData",
+                    "Name"        : {
+                        "Ref" : "DatabaseName"
+                    }
+                }
+            }
+        },
+
+		"CreateReservedInstancePriceListApiTable" : {
+			"Type" : "AWS::Athena::NamedQuery",
+			"Properties" : {
+				 "Database" : {
+					"Ref" : "GlueDatabase"
+				 },
+				 "Description" : "Creates the table with the price list api RI data.",
+				 "Name" : "BD-ReservedInstancePriceListData-CreateTable",
+				 "QueryString" : {
+					"Fn::Join" : [
+						"\n",
+						[
+							{
+								"Fn::Sub" : "CREATE EXTERNAL TABLE IF NOT EXISTS `${PriceListDataTableName}`("
+							},
+							"`sku` string,",
+							"`offertermcode` string,",
+							"`platform` string,",
+							"`tenancy` string,",
+							"`operation` string,",
+							"`usagetype` string,",
+							"`region` string,",
+							"`service` string,",
+							"`instancetype` string,",
+							"`operatingsystem` string,",
+							"`adjustedpriceperunit` double,",
+							"`ondemandhourlycost` double,",
+							"`breakevenpercentage` double,",
+							"`upfrontfee` double,",
+							"`leaseterm` bigint,",
+							"`purchaseoption` string,",
+							"`offeringclass` string,",
+							"`termtype` string,", 
+							"`key` string,",
+							"`reservedinstancecost` double,",
+							"`ondemandcostforterm` double,", 
+							"`costsavings` double,",
+							"`percentsavings` double,",
+							"`vcpu` bigint,",
+							"`memory` double)",
+							"ROW FORMAT DELIMITED",
+							"FIELDS TERMINATED BY '|'",
+							"STORED AS INPUTFORMAT",
+							"'org.apache.hadoop.mapred.TextInputFormat'",
+							"OUTPUTFORMAT",
+							"'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'",
+							"LOCATION",
+							{
+								"Fn::Sub" : "'s3://${PriceListBucket}/'"
+							},
+							"TBLPROPERTIES (",
+							"'averageRecordSize'='276',",
+							"'classification'='csv',",
+							"'columnsOrdered'='true',",
+							"'compressionType'='none',", 
+							"'delimiter'='|',",
+							"'objectCount'='5',",
+							"'skip.header.line.count'='1',",
+							"'typeOfData'='file')"
+						]
+					]
+				 }
+			}
+		},
+
+		"CreateCURRepoTable" : {
+			"Type" : "AWS::Athena::NamedQuery",
+			"Properties" : {
+				 "Database" : {
+					"Ref" : "GlueDatabase"
+				 },
+				 "Description" : "Creates the table with the raw billing data from the CURs",
+				 "Name" : "BD-CURData-CreateTable",
+				 "QueryString" : {
+					"Fn::Join" : [
+						"\n",
+						[
+							{
+								"Fn::Sub" : "CREATE EXTERNAL TABLE IF NOT EXISTS `${CURDataTableName}`("
+							},
+							"`identity/lineitemid` string,",
+							"`identity/timeinterval` string,",
+							"`bill/invoiceid` string,",
+							"`bill/billingentity` string,",
+							"`bill/billtype` string,", 
+							"`bill/payeraccountid` string,",
+							"`bill/billingperiodstartdate` string,",
+							"`bill/billingperiodenddate` string,",
+							"`lineitem/usageaccountid` string,",
+							"`lineitem/lineitemtype` string,",
+							"`lineitem/usagestartdate` string,",
+							"`lineitem/usageenddate` string,",
+							"`lineitem/productcode` string,",
+							"`lineitem/usagetype` string,",
+							"`lineitem/operation` string,",
+							"`lineitem/availabilityzone` string,",
+							"`lineitem/resourceid` string,",
+							"`lineitem/usageamount` string,",
+							"`lineitem/normalizationfactor` string,",
+							"`lineitem/normalizedusageamount` string,", 
+							"`lineitem/currencycode` string,",
+							"`lineitem/unblendedrate` string,",
+							"`lineitem/unblendedcost` string,",
+							"`lineitem/blendedrate` string,",
+							"`lineitem/blendedcost` string,",
+							"`lineitem/lineitemdescription` string,",
+							"`lineitem/taxtype` string,",
+							"`lineitem/legalentity` string,",
+							"`product/productname` string,",
+							"`product/availability` string,",
+							"`product/capacitystatus` string,", 
+							"`product/clockspeed` string,",
+							"`product/currentgeneration` string,",
+							"`product/databaseengine` string,",
+							"`product/dedicatedebsthroughput` string,",
+							"`product/deploymentoption` string,",
+							"`product/directorysize` string,",
+							"`product/directorytype` string,",
+							"`product/directorytypedescription` string,",
+							"`product/durability` string,",
+							"`product/ecu` string,",
+							"`product/edition` string,",
+							"`product/enginecode` string,",
+							"`product/enhancednetworkingsupported` string,",
+							"`product/eventtype` string,",
+							"`product/fromlocation` string,", 
+							"`product/fromlocationtype` string,",
+							"`product/gpu` string,",
+							"`product/gpumemory` string,",
+							"`product/group` string,",
+							"`product/groupdescription` string,",
+							"`product/instancefamily` string,",
+							"`product/instancetype` string,",
+							"`product/instancetypefamily` string,",
+							"`product/licensemodel` string,",
+							"`product/location` string,",
+							"`product/locationtype` string,",
+							"`product/maxiopsburstperformance` string,",
+							"`product/maxiopsvolume` string,",
+							"`product/maxthroughputvolume` string,",
+							"`product/maxvolumesize` string,",
+							"`product/memory` string,",
+							"`product/minvolumesize` string,",
+							"`product/networkperformance` string,",
+							"`product/normalizationsizefactor` string,",
+							"`product/operatingsystem` string,",
+							"`product/operation` string,",
+							"`product/physicalcpu` string,", 
+							"`product/physicalgpu` string,",
+							"`product/physicalprocessor` string,",
+							"`product/preinstalledsw` string,",
+							"`product/processorarchitecture` string,",
+							"`product/processorfeatures` string,",
+							"`product/productfamily` string,",
+							"`product/region` string,",
+							"`product/servicecode` string,",
+							"`product/servicename` string,",
+							"`product/sku` string,",
+							"`product/storage` string,",
+							"`product/storageclass` string,",
+							"`product/storagemedia` string,",
+							"`product/subscriptiontype` string,",
+							"`product/tenancy` string,",
+							"`product/tolocation` string,",
+							"`product/tolocationtype` string,",
+							"`product/transfertype` string,",
+							"`product/usagetype` string,",
+							"`product/vcpu` string,",
+							"`product/version` string,",
+							"`product/volumetype` string,",
+							"`pricing/rateid` string,",
+							"`pricing/publicondemandcost` string,",
+							"`pricing/publicondemandrate` string,",
+							"`pricing/term` string,",
+							"`pricing/unit` string,",
+							"`reservation/amortizedupfrontcostforusage` string,",
+							"`reservation/amortizedupfrontfeeforbillingperiod` string,",
+							"`reservation/effectivecost` string,",
+							"`reservation/endtime` string,",
+							"`reservation/modificationstatus` string,",
+							"`reservation/normalizedunitsperreservation` string,",
+							"`reservation/recurringfeeforusage` string,",
+							"`reservation/starttime` string,",
+							"`reservation/subscriptionid` string,",
+							"`reservation/totalreservednormalizedunits` string,",
+							"`reservation/totalreservedunits` string,",
+							"`reservation/unitsperreservation` string,",
+							"`reservation/unusedamortizedupfrontfeeforbillingperiod` string,",
+							"`reservation/unusednormalizedunitquantity` string,",
+							"`reservation/unusedquantity` string,",
+							"`reservation/unusedrecurringfee` string,",
+							"`reservation/upfrontvalue` string)",
+							"PARTITIONED BY (",
+							"`accountid` string, ",
+							"`billingperiod` date)",
+							"ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'",
+							"WITH SERDEPROPERTIES (",
+							"'serialization.format' = ',',",
+							"'quoteChar' = '\"',",
+							"'field.delim' = ',')",																					
+							"LOCATION",
+							{
+								"Fn::Sub" : "'s3://${BillingFileBucket}/'"
+							},
+							"TBLPROPERTIES (",							
+							"'compressionType'='gzip',",
+							{
+								"Fn::Sub" : "'exclusions'='[\"s3://${BillingFileBucket}/**.json\",\"s3://${BillingFileBucket}/**.zip\"]',"
+							},							
+							"'skip.header.line.count'='1',",
+							"'typeOfData'='file')"
+						]
+					]
+				 }
+			}
+		},
+
+		"LoadAllCURRepoTablePartitions" : {
+			"Type" : "AWS::Athena::NamedQuery",
+			"Properties" : {
+				"Database" : {
+					"Ref" : "GlueDatabase"
+				},
+				"Description" : "Loads all partitions into the table",
+				"Name" : "BD-CURData-LoadAllPartitions",
+				"QueryString" : {
+					"Fn::Sub" : "MSCK REPAIR TABLE `${GlueDatabase}`.`${CURDataTableName}`"
+				}
+			}
+		},
+
+		"BillingFileModificationJob" : {
+			"Type" : "AWS::Glue::Job",
+			"Properties" : {
+				"Role" : {
+					"Ref" : "AWSGlueServiceRole"
+				},
+				"DefaultArguments" : {
+					"--job-bookmark-option": "job-bookmark-enable",
+					"--enable-metrics": ""
+				},
+				"ExecutionProperty" : {
+					"MaxConcurrentRuns" : 1
+				},
+				"MaxRetries" : 0,
+				"Name" : "cur_etl.py",
+				"Description" : "Performs an ETL on CUR data",
+				"Command" : {
+					"Name" : "curetl",
+					"ScriptLocation" : {						
+						"Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/"
+					}
+				}
+			}
+		}
+    },
+
+    "Outputs"                  : {
+    }
+}
