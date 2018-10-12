@@ -13,6 +13,7 @@ The entire pipeline is serverless. The two required projects use Lambda to initi
 - [Usage](#usage)
   * [Reserved Instance Recommendation](#reserved-instance-recommendation)
   * [Best RI Deals](#best-ri-deals)
+  * [External Data Transfer Costs](#external-data-transfer)
 - [Revision History](#revision-history)
 
 ## Usage
@@ -36,6 +37,24 @@ You provide input at the top of the script, the start date, end date, and whethe
 This will give you an idea of where the most significant cost savings for reserved instances are. This is useful if you have net new workloads moving to AWS that you know will run 24/7 or will benefit from RIs. You might find regions that you didn't think about that offer better deals on the instance type you're looking for.
 
 Obviously, tailor the `WHERE` clause in the script to find the types of instances you're looking for. The price list data contains OS, memory, vcpu, region, and tenancy all as options you can filter against.
+
+### External Data Transfer
+
++ external_data_transfer.sql
+
+Provides insight to the services and regions that are generating your greatest external data transfer costs.
+
+### Inter Region Data Transfer
+
++ cross_region_data_transfer.sql
+
+Provides insight to the services and regions that are generating your greatest cross region data transfer costs.
+
+### vCPU By Region
+
++ vcpu_by_region.sql
+
+Identifies how many vCPUs on unique resources you ran per service in each region to give an idea of overall utilization in regions. For example, if you ran 2 EC2 instances for 1 week each with 2 vCPUs and 1 EC2 instance for 3 weeks with 4 vCPUs all in us-east-1 during a specified billing period, you would see that you have 8 vCPUs in us-east-1 for EC2. If the instances changed type during the billing period, the greatest vCPU value is used.
 
 ## Revision History
 

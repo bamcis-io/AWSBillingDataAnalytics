@@ -479,6 +479,14 @@
                                 "Name" : "product_description",
                                 "Type" : "string"
                             },
+							{
+                                "Name" : "product_fromlocation",
+                                "Type" : "string"
+                            },
+							{
+                                "Name" : "product_fromlocationtype",
+                                "Type" : "string"
+                            },
                             {
                                 "Name" : "product_instancetype",
                                 "Type" : "string"
@@ -495,8 +503,16 @@
                                 "Name" : "product_locationtype",
                                 "Type" : "string"
                             },
+							{
+                                "Name" : "product_memory",
+                                "Type" : "string"
+                            },
                             {
                                 "Name" : "product_operation",
+                                "Type" : "string"
+                            },
+							{
+                                "Name" : "product_preinstalledsw",
                                 "Type" : "string"
                             },
                             {
@@ -519,6 +535,14 @@
                                 "Name" : "product_tenancy",
                                 "Type" : "string"
                             },
+							{
+                                "Name" : "product_tolocation",
+                                "Type" : "string"
+                            },
+							{
+                                "Name" : "product_tolocationtype",
+                                "Type" : "string"
+                            },
                             {
                                 "Name" : "product_transfertype",
                                 "Type" : "string"
@@ -526,6 +550,10 @@
                             {
                                 "Name" : "product_usagetype",
                                 "Type" : "string"
+                            },
+							{
+                                "Name" : "product_vcpu",
+                                "Type" : "bigint"
                             },
                             {
                                 "Name" : "product_version",

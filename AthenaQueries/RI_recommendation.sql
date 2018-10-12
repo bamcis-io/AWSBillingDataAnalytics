@@ -11,13 +11,14 @@ AS
     SELECT
         CAST(start_date as DATE) AS start_date,
         CAST(end_date as DATE) AS end_date,
-        ec2_ritype
+        ec2_ritype,
+		payer_accountid
     FROM
         (
           VALUES
-          ('2018-10-01', '2018-10-11', 'Regional')
+          ('2018-10-01', '2018-10-11', 'Regional', '123456789012')
         )
-        AS t1(start_date, end_date, ec2_ritype)
+        AS t1(start_date, end_date, ec2_ritype, payer_accountid)
 ),
 
 
@@ -82,6 +83,8 @@ AS
             lineitem_usagestartdate >= var.start_date
         AND
             lineitem_usagestartdate < var.end_date 
+		AND 
+			billing_payeraccountid = var.payer_accountid
      GROUP BY 
          lineitem_resourceid 
 ),
