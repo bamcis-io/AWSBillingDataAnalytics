@@ -84,7 +84,7 @@ AS
         AND
             lineitem_usagestartdate < var.end_date 
 		AND 
-			billing_payeraccountid = var.payer_accountid
+			bill_payeraccountid = var.payer_accountid
      GROUP BY 
          lineitem_resourceid 
 ),
