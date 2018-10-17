@@ -76,7 +76,7 @@ AS
   
 			(product_servicecode = 'AmazonDynamoDB'
 				AND 
-			 regexp_like(product_usagetype,'WriteCapacityUnit-Hrs|ReadCapacityUnit-Hrs')
+			 regexp_like(product_usagetype,'\bWriteCapacityUnit-Hrs|\bReadCapacityUnit-Hrs')
 			) -- DynamoDB read/write capacity units 
 		)
         AND
