@@ -14,15 +14,19 @@ The entire pipeline is serverless. The two required projects use Lambda to initi
   * [Reserved Instance Recommendation](#reserved-instance-recommendation)
   * [Best RI Deals](#best-ri-deals)
   * [External Data Transfer Costs](#external-data-transfer)
+  * [Inter Region Data Transfer](#inter-region-data-transfer)
+  * [vCPU By Region](#vcpu-by-region)
 - [Revision History](#revision-history)
 
 ## Usage
 
-Once you have deployed the two required projects, the AWs CUR Manager and AWS Price List Reserved Instance Helper, you can deploy the infrastructure in the BillingDataInfrastructure.template CloudFormation script. This will deploy the S3, Glue, and Athena resources you need. Then, upload the `cur_etl.py` script to the bucket you specified for the ETL Job, this defaults to
+Once you have deployed the two required projects, the AWS CUR Manager and AWS Price List Reserved Instance Helper, you can deploy the infrastructure in the BillingDataInfrastructure.template CloudFormation script. This will deploy the S3, Glue, and Athena resources you need. Then, upload the `cur_etl.py` script to the bucket you specified for the ETL Job, this defaults to
 
     s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl.py
 
 Once that is uploaded, wait for the CUR Manager and your Price List data to start populating in S3, this may take 1 or more days. Once you have data, you can start running the Athena queries.
+
+**Make sure you use the same name for the Glue ETL job in the CUR Manager application manager as you do in this application. The defaults are the same, but if you modified, make sure you change it in both places.**
 
 ### Reserved Instance Recommendation
 
