@@ -1,9 +1,11 @@
 # BAMCIS AWS Billing Data Analytics
 
-This provides AWS Glue and AWS Athena infrastructure to run analytics on Cost and Usage Report data as well as Reserved Instace Price List API data. This project relies on the data delivered from these two separate projects:
+This provides AWS Glue and AWS Athena infrastructure to run analytics on Cost and Usage Report data as well as Reserved Instance Price List API data. This project relies on the data delivered from these two separate projects:
 
 + [AWS CUR Manager](https://github.com/bamcis-io/AWSCURManager)
 + [AWS Price List Reserved Instance Helper](https://github.com/bamcis-io/AWSPriceListReservedInstanceHelper)
+
+However, the first project is not necessarily required. As long as you have a database with 1 table per month of CUR data, you can use that to ETL the data into the database table defined here for CUR data.
 
 The queries are works in progress. I will add new queries when I find interesting insights into the CUR and price list data.
 
