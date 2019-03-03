@@ -17,12 +17,15 @@
     <Compile Include="BillingData.template">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="cur_etl_parquet.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="README.md">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="cur_etl.py">
+    <Content Include="cur_etl_csv.py">
       <SubType>Content</SubType>
     </Content>
   </ItemGroup>

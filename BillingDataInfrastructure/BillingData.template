@@ -361,15 +361,15 @@
                     "TableType"   : "EXTERNAL_TABLE",
                     "PartitionKeys" : [
                         {
-                            "Name" : "bill_payeraccountid",
+                            "Name" : "bill_payer_account_id",
                             "Type" : "string"
                         },
                         {
-                            "Name" : "billingperiod",
+                            "Name" : "billing_period",
                             "Type" : "date"
                         },
                         {
-                            "Name" : "lineitem_usageaccountid",
+                            "Name" : "line_item_usage_account_id",
                             "Type" : "string"
                         },
                         {
@@ -392,87 +392,87 @@
                         },
                         "Columns"      : [
                             {
-                                "Name" : "bill_invoiceid",
+                                "Name" : "bill_invoice_id",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "bill_billtype",
+                                "Name" : "bill_bill_type",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "bill_billingperiodstartdate",
+                                "Name" : "bill_billing_period_start_date",
                                 "Type" : "timestamp"
                             },
                             {
-                                "Name" : "bill_billingperiodenddate",
+                                "Name" : "bill_billing_period_end_date",
                                 "Type" : "timestamp"
                             },
                             {
-                                "Name" : "lineitem_lineitemtype",
+                                "Name" : "line_item_line_item_type",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "lineitem_usagestartdate",
+                                "Name" : "line_item_usage_start_date",
                                 "Type" : "timestamp"
                             },
                             {
-                                "Name" : "lineitem_usageenddate",
+                                "Name" : "line_item_usage_end_date",
                                 "Type" : "timestamp"
                             },
                             {
-                                "Name" : "lineitem_productcode",
+                                "Name" : "line_item_product_code",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "lineitem_usagetype",
+                                "Name" : "line_item_usage_type",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "lineitem_operation",
+                                "Name" : "line_item_operation",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "lineitem_availabilityzone",
+                                "Name" : "line_item_availability_zone",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "lineitem_resourceid",
+                                "Name" : "line_item_resource_id",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "lineitem_usageamount",
+                                "Name" : "line_item_usage_amount",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "lineitem_normalizationfactor",
-                                "Type" : "bigint"
-                            },
-                            {
-                                "Name" : "lineitem_normalizedusageamount",
+                                "Name" : "line_item_normalization_factor",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "lineitem_unblendedrate",
+                                "Name" : "line_item_normalized_usageamount",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "lineitem_unblendedcost",
+                                "Name" : "line_item_unblended_rate",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "lineitem_blendedrate",
+                                "Name" : "line_item_unblended_cost",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "lineitem_blendedcost",
+                                "Name" : "line_item_blended_rate",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "lineitem_lineitemdescription",
+                                "Name" : "line_item_blended_cost",
+                                "Type" : "double"
+                            },
+                            {
+                                "Name" : "line_item_line_item_description",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "product_productname",
+                                "Name" : "product_product_name",
                                 "Type" : "string"
                             },
                             {
@@ -480,19 +480,19 @@
                                 "Type" : "string"
                             },
 							{
-                                "Name" : "product_fromlocation",
+                                "Name" : "product_from_location",
                                 "Type" : "string"
                             },
 							{
-                                "Name" : "product_fromlocationtype",
+                                "Name" : "product_from_location_type",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "product_instancetype",
+                                "Name" : "product_instance_type",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "product_operatingsystem",
+                                "Name" : "product_operating_system",
                                 "Type" : "string"
                             },
                             {
@@ -500,7 +500,7 @@
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "product_locationtype",
+                                "Name" : "product_location_type",
                                 "Type" : "string"
                             },
 							{
@@ -512,19 +512,19 @@
                                 "Type" : "string"
                             },
 							{
-                                "Name" : "product_preinstalledsw",
+                                "Name" : "product_pre_installed_sw",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "product_productfamily",
+                                "Name" : "product_product_family",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "product_servicecode",
+                                "Name" : "product_service_code",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "product_servicename",
+                                "Name" : "product_service_name",
                                 "Type" : "string"
                             },
                             {
@@ -536,19 +536,19 @@
                                 "Type" : "string"
                             },
 							{
-                                "Name" : "product_tolocation",
+                                "Name" : "product_to_location",
                                 "Type" : "string"
                             },
 							{
-                                "Name" : "product_tolocationtype",
+                                "Name" : "product_to_location_type",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "product_transfertype",
+                                "Name" : "product_transfer_type",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "product_usagetype",
+                                "Name" : "product_usage_type",
                                 "Type" : "string"
                             },
 							{
@@ -560,11 +560,11 @@
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "pricing_publicondemandcost",
+                                "Name" : "pricing_public_on_demand_cost",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "pricing_publicondemandrate",
+                                "Name" : "pricing_public_on_demand_rate",
                                 "Type" : "double"
                             },
                             {
@@ -576,67 +576,67 @@
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "reservation_amortizedupfrontcostforusage",
+                                "Name" : "reservation_amortized_upfront_cost_for_usage",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "reservation_amortizedupfrontfeeforbillingperiod",
+                                "Name" : "reservation_amortized_upfront_fee_for_billing_period",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "reservation_effectivecost",
+                                "Name" : "reservation_effective_cost",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "reservation_endtime",
+                                "Name" : "reservation_end_time",
                                 "Type" : "timestamp"
                             },
                             {
-                                "Name" : "reservation_modificationstatus",
+                                "Name" : "reservation_modification_status",
                                 "Type" : "string"
                             },
                             {
-                                "Name" : "reservation_normalizedunitsperreservation",
+                                "Name" : "reservation_normalized_units_per_reservation",
                                 "Type" : "bigint"
                             },
                             {
-                                "Name" : "reservation_recurringfeeforusage",
+                                "Name" : "reservation_recurring_fee_for_usage",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "reservation_starttime",
+                                "Name" : "reservation_start_time",
                                 "Type" : "timestamp"
                             },
                             {
-                                "Name" : "reservation_totalreservednormalizedunits",
+                                "Name" : "reservation_total_reserved_normalized_units",
                                 "Type" : "bigint"
                             },
                             {
-                                "Name" : "reservation_totalreservedunits",
+                                "Name" : "reservation_total_reserved_units",
                                 "Type" : "bigint"
                             },
                             {
-                                "Name" : "reservation_unitsperreservation",
+                                "Name" : "reservation_units_per_reservation",
                                 "Type" : "bigint"
                             },
                             {
-                                "Name" : "reservation_unusedamortizedupfrontfeeforbillingperiod",
+                                "Name" : "reservation_unused_amortized_upfront_fee_for_billing_period",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "reservation_unusednormalizedunitquantity",
+                                "Name" : "reservation_unused_normalized_unit_quantity",
                                 "Type" : "bigint"
                             },
                             {
-                                "Name" : "reservation_unusedquantity",
+                                "Name" : "reservation_unused_quantity",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "reservation_unusedrecurringfee",
+                                "Name" : "reservation_unused_recurring_fee",
                                 "Type" : "double"
                             },
                             {
-                                "Name" : "reservation_upfrontvalue",
+                                "Name" : "reservation_upfront_value",
                                 "Type" : "double"
                             }
                         ]
@@ -645,7 +645,7 @@
             }
         },
 
-		"CreateReservedInstancePriceListApiTable" : {
+		"CURDataTableLoadMissingPartitionsQuery" : {
             "Type" : "AWS::Athena::NamedQuery",
             "Properties" : {
                 "Database" : {
@@ -659,7 +659,7 @@
             }
         },
 
-        "BillingFileModificationJob"              : {
+        "BillingFileModificationJobCSV"              : {
             "Type" : "AWS::Glue::Job",
             "Properties" : {
                 "Role" : {
@@ -676,12 +676,40 @@
                     "MaxConcurrentRuns" : 1
                 },
                 "MaxRetries"        : 0,
-                "Name"              : "CUR File ETL",
-                "Description"       : "Performs an ETL on CUR data",
+                "Name"              : "CUR File ETL for CSV Files",
+                "Description"       : "Performs an ETL on CUR data from CSV files.",
                 "Command"           : {
                     "Name" : "glueetl",
                     "ScriptLocation" : {
-                        "Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl.py"
+                        "Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_csv.py"
+                    }
+                }
+            }
+        },
+
+		"BillingFileModificationJobParquet"              : {
+            "Type" : "AWS::Glue::Job",
+            "Properties" : {
+                "Role" : {
+                    "Ref" : "AWSGlueServiceRole"
+                },
+                "DefaultArguments" : {
+                    "--job-bookmark-option" : "job-bookmark-enable",
+                    "--enable-metrics"      : "",
+                    "--TempDir"             : {
+                        "Fn::Sub" : "s3://aws-glue-temporary-${AWS::AccountId}-${AWS::Region}"
+                    }
+                },
+                "ExecutionProperty" : {
+                    "MaxConcurrentRuns" : 1
+                },
+                "MaxRetries"        : 0,
+                "Name"              : "CUR File ETL for Parquet Files",
+                "Description"       : "Performs an ETL on CUR data from Parquet files.",
+                "Command"           : {
+                    "Name" : "glueetl",
+                    "ScriptLocation" : {
+                        "Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_parquet.py"
                     }
                 }
             }

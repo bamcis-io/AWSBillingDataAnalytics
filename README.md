@@ -9,7 +9,7 @@ However, the first project is not necessarily required. As long as you have a da
 
 The queries are works in progress. I will add new queries when I find interesting insights into the CUR and price list data.
 
-The entire pipeline is serverless. The two required projects use Lambda to initiate workflows, and the CUR Manager also uses Glue to perform a transform of the CUR data through a job defined in this template. So, make sure you use the same AWS Glue ETL Job name in each CloudFormation script.
+The entire pipeline is serverless. The two required projects use Lambda to initiate workflows, and the CUR Manager also uses Glue to perform a transform of the CUR data through a job defined in this template. So, make sure you use the same AWS Glue ETL Job name in each CloudFormation script. **There are 2 different ETL job files and 2 different ETL jobs in this solution, one uses the column names for the standard csv files and one uses the column names for parquet files. Make sure you choose the correct one.**
 
 ## Table of Contents
 - [Usage](#usage)
@@ -22,9 +22,13 @@ The entire pipeline is serverless. The two required projects use Lambda to initi
 
 ## Usage
 
-Once you have deployed the two required projects, the AWS CUR Manager and AWS Price List Reserved Instance Helper, you can deploy the infrastructure in the BillingDataInfrastructure.template CloudFormation script. This will deploy the S3, Glue, and Athena resources you need. Then, upload the `cur_etl.py` script to the bucket you specified for the ETL Job, this defaults to
+Once you have deployed the two required projects, the AWS CUR Manager and AWS Price List Reserved Instance Helper, you can deploy the infrastructure in the BillingDataInfrastructure.template CloudFormation script. This will deploy the S3, Glue, and Athena resources you need. Then, upload the `cur_etl_csv.py` and `cur_etl_parquet.py` scripts to the bucket you specified for the ETL Job, this defaults to
 
-    s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl.py
+    s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_csv.py
+
+and 
+
+    s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_parquet.py
 
 Once that is uploaded, wait for the CUR Manager and your Price List data to start populating in S3, this may take 1 or more days. Once you have data, you can start running the Athena queries.
 

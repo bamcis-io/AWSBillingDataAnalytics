@@ -1,21 +1,21 @@
 SELECT 
-  lineitem_productcode AS Service,
-  product_fromlocation AS Region,
-  SUM(lineitem_unblendedcost) AS ExternalDataTransferCosts,
+  line_item_product_code AS Service,
+  product_from_location AS Region,
+  SUM(line_item_unblended_cost) AS ExternalDataTransferCosts,
   COUNT(*) AS LineItemCount
 FROM 
   "billingdata"."cur_formatted"
 WHERE 
-  product_productfamily = 'Data Transfer'
+  product_product_family = 'Data Transfer'
   AND
-  product_tolocation = 'External' 
+  product_to_location = 'External' 
   AND 
-  bill_payeraccountid = '252486826203'
+  bill_payer_account_id = '252486826203'
   AND
-  billingperiod = from_iso8601_date('2018-10-01')
+  billing_period = from_iso8601_date('2018-10-01')
 GROUP BY
-  lineitem_productcode,
-  product_fromlocation
+  line_item_productcode,
+  product_from_location
 ORDER BY 
   ExternalDataTransferCosts,
   LineItemCount

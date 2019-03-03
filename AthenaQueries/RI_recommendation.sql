@@ -29,14 +29,14 @@ AS
 	First, aggregate all of the usage data for the products we care about
 	and indicate actual instance usage based on the usage type 
 */
-    usage_by_resourceid
+    usage_by_resource_id
 AS 
 (
     SELECT 
-        lineitem_resourceid, -- The resource id
-        MAX(lineitem_usagestartdate) AS latest, -- The most recent usage time
+        line_item_resource_id, -- The resource id
+        MAX(line_item_usage_start_date) AS latest, -- The most recent usage time
         MAX(product_sku) AS sku, -- The unique sku for the charge
-        MAP_AGG(lineitem_usagestartdate, lineitem_usageamount) AS usagemap, -- ALL the usage for that resource, use a map here so we can index directly into it later
+        MAP_AGG(line_item_usage_start_date, line_item_usage_amount) AS usagemap, -- ALL the usage for that resource, use a map here so we can index directly into it later
         MAX(ec2_ritype) AS ec2_ritype, -- The RI type, zonal or regional specifically for EC2, changes the way we group rows
         MAX(start_date) AS start_date, -- The start date for the report, inclusive
         MAX(end_date) AS end_date -- The end date for the report, non-inclusive
@@ -46,47 +46,47 @@ AS
 		pricing_term = 'OnDemand'
 		AND
 		(
-			(product_servicecode = 'AmazonEC2'
+			(product_service_code = 'AmazonEC2'
 				AND 
-			 regexp_like(product_usagetype, '\bBoxUsage\b|HeavyUsage|DedicatedUsage')
+			 regexp_like(product_usage_type, '\bBoxUsage\b|HeavyUsage|DedicatedUsage')
 			) -- EC2 instance usage
   
 			OR 
   
-			(product_servicecode = 'AmazonRDS'
+			(product_service_code = 'AmazonRDS'
 				AND 
-			 regexp_like(product_usagetype, 'Multi-AZUsage|InstanceUsage')
+			 regexp_like(product_usage_type, 'Multi-AZUsage|InstanceUsage')
 			) -- RDS instance usage
   
 			OR 
   
-			(product_servicecode = 'AmazonElastiCache'
+			(product_service_code = 'AmazonElastiCache'
 				AND 
-			 regexp_like(product_usagetype,'NodeUsage')
+			 regexp_like(product_usage_type,'NodeUsage')
 			) -- Elasticache instance usage 
 
 			OR 
   
-			(product_servicecode = 'AmazonRedshift'
+			(product_service_code = 'AmazonRedshift'
 				AND 
-			 regexp_like(product_usagetype,'\bNode\b')
+			 regexp_like(product_usage_type,'\bNode\b')
 			 ) -- Redshift instance usage
 
 			OR 
   
-			(product_servicecode = 'AmazonDynamoDB'
+			(product_service_code = 'AmazonDynamoDB'
 				AND 
-			 regexp_like(product_usagetype,'\bWriteCapacityUnit-Hrs|\bReadCapacityUnit-Hrs')
+			 regexp_like(product_usage_type,'\bWriteCapacityUnit-Hrs|\bReadCapacityUnit-Hrs')
 			) -- DynamoDB read/write capacity units 
 		)
         AND
-            lineitem_usagestartdate >= var.start_date
+            line_item_usage_start_date >= var.start_date
         AND
-            lineitem_usagestartdate < var.end_date 
+            line_item_usage_start_date < var.end_date 
 		AND 
-			bill_payeraccountid = var.payer_accountid
+			bill_payer_account_id = var.payer_accountid
      GROUP BY 
-         lineitem_resourceid 
+         line_item_resource_id 
 ),
 
 
@@ -106,10 +106,10 @@ AS
 (
 	
 	SELECT 
-		b.lineitem_resourceid,
-		b.lineitem_productcode,
-		b.lineitem_usageamount,
-		b.lineitem_availabilityzone,
+		b.line_item_resource_id,
+		b.line_item_product_code,
+		b.line_item_usage_amount,
+		b.line_item_availability_zone,
 		b.product_region,
 		b.product_servicecode,
 		b.product_sku,
@@ -117,21 +117,21 @@ AS
 		b.product_operation,
 		b.pricing_term,
 		b.product_tenancy,
-        usage_by_resourceid.usagemap,
-        usage_by_resourceid.ec2_ritype,
-        usage_by_resourceid.start_date,
-        usage_by_resourceid.end_date
+        usage_by_resource_id.usagemap,
+        usage_by_resource_id.ec2_ritype,
+        usage_by_resource_id.start_date,
+        usage_by_resource_id.end_date
 	FROM 
 		"billingdata"."cur_formatted" AS b
 	INNER JOIN -- Only select the elements where both sides match
-		usage_by_resourceid
+		usage_by_resource_id
 	ON -- This combination should uniquely identify the row that has
 	   -- the most recent usage data for the instance
-		b.lineitem_resourceid = usage_by_resourceid.lineitem_resourceid
+		b.line_item_resource_id = usage_by_resource_id.line_item_resource_id
 		AND 
-		b.lineitem_usagestartdate = usage_by_resourceid.latest 
+		b.line_item_usage_start_date = usage_by_resource_id.latest 
 		AND 
-		b.product_sku = usage_by_resourceid.sku
+		b.product_sku = usage_by_resource_id.sku
 ),
 
 
@@ -149,20 +149,20 @@ AS (
 
 	SELECT 
 		product_sku as SKU,
-		IF (ec2_ritype = 'Regional', product_region, COALESCE(lineitem_availabilityzone, product_region)) as Location,
-		product_usagetype as UsageType,
+		IF (ec2_ritype = 'Regional', product_region, COALESCE(line_item_availability_zone, product_region)) as Location,
+		product_usage_type as UsageType,
 		product_operation as Operation,
 		CASE product_tenancy
 			WHEN NULL THEN 'Shared'		-- Only EC2 will have product_tenancy
 			WHEN '' THEN 'Shared'		-- So everything else is default shared
 			ELSE product_tenancy
 		END as Tenancy,
-		MAX(lineitem_availabilityzone) as AvailabilityZone,
-        ARRAY_AGG(lineitem_resourceid) as ResourceIds,
+		MAX(line_item_availability_zone) as AvailabilityZone,
+        ARRAY_AGG(line_item_resource_id) as ResourceIds,
         MAX(ec2_ritype) as EC2_ReservedInstanceType,
-		map_agg(lineitem_resourceid, usagemap) as ResourceUsage, -- A map of resource id to each hour it was running, useful for proof purposes
+		map_agg(line_item_resource_id, usagemap) as ResourceUsage, -- A map of resource id to each hour it was running, useful for proof purposes
 		reduce(
-			map_values(map_agg(lineitem_resourceid, usagemap)), -- Hacky way to get all of the usagemaps into an array
+			map_values(map_agg(line_item_resource_id, usagemap)), -- Hacky way to get all of the usagemaps into an array
 			CAST(												-- The reduce function won't take a map as the initial state, so cast it to a ROW, which it will take
 				  ROW(
 					MAP(										-- Create a map of all of the possible start times as keys and assign an initial 0 as the value
@@ -183,7 +183,7 @@ AS (
                 ROW(	
 					transform_values(initial_state.map, (key, value) ->										-- Modify the initial state by adding the actual usage amount for that hour, for Windows
 						IF (resource_usage_map[key] IS NULL, value,											-- and RHEL, this will always be 1, since they don't get per second billing, but for
-							IF (resource_usage_map[key] > 1 AND product_servicecode != 'AmazonDynamoDB',    -- Linux OS, this could be less than 1, if it is more than 1, the instance got stopped/started
+							IF (resource_usage_map[key] > 1 AND product_service_code != 'AmazonDynamoDB',    -- Linux OS, this could be less than 1, if it is more than 1, the instance got stopped/started
 																											-- during the hour, so we ignore that and only count it as 1 running resource for that hour since
 																											-- multiple RIs wouldn't help reduce costs beyond that 1 instance, unless it's DynamoDB, then we
 																											-- want to count the number of capacity units in that hour. We also add to the total instance count
@@ -201,12 +201,12 @@ AS (
 	FROM
 		unique_resource_details_with_usage
 	GROUP BY
-		IF (ec2_ritype = 'Regional', product_region, COALESCE(lineitem_availabilityzone, product_region)), -- Select the grouping based on EC2 RI type, zonal or regional
+		IF (ec2_ritype = 'Regional', product_region, COALESCE(line_item_availability_zone, product_region)), -- Select the grouping based on EC2 RI type, zonal or regional
 		product_sku,  -- The sku is the same for all AZs in a region
-        product_usagetype,
+        product_usage_type,
 		product_operation,
 		product_tenancy,
-        product_servicecode, -- Include this so we can use it in the sequence generation, not needed after
+        product_service_code, -- Include this so we can use it in the sequence generation, not needed after
         start_date, -- Include this so we can use it in the sequence generation, not needed after
         end_date	-- Include this so we can use it in the sequence generation, not needed after
 )

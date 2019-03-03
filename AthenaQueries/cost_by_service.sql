@@ -1,16 +1,16 @@
 SELECT 
-  IF (MAX(product_servicename) IS NOT NULL AND MAX(product_servicename) != '', MAX(product_servicename), lineitem_productcode) AS Service,
-  SUM(lineitem_unblendedcost) AS Cost
+  IF (MAX(product_service_name) IS NOT NULL AND MAX(product_service_name) != '', MAX(product_service_name), line_item_product_code) AS Service,
+  SUM(line_item_unblended_cost) AS Cost
 FROM 
   "billingdata"."cur_formatted"
 WHERE 
-  lineitem_usagestartdate >= from_iso8601_date('2018-10-01')
+  line_item_usage_start_date >= from_iso8601_date('2018-10-01')
   AND
-  lineitem_usagestartdate < from_iso8601_date('2018-10-15')
+  line_item_usage_start_date < from_iso8601_date('2018-10-15')
   AND
-  bill_payeraccountid = '252486826203'
+  bill_payer_account_id = '252486826203'
 GROUP BY
-  lineitem_productcode
+  line_item_product_code
 ORDER BY 
   Cost
 DESC

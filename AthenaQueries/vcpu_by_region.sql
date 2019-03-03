@@ -3,8 +3,8 @@ WITH
 AS
 (
 SELECT 
-  lineitem_resourceid,
-  lineitem_productcode,
+  line_item_resource_id,
+  line_item_product_code,
   product_region,
   MAX(product_vcpu) AS vCPU
 FROM 
@@ -14,21 +14,21 @@ WHERE
   AND
   product_vcpu != 0
   AND
-  bill_payeraccountid = '252486826203'
+  bill_payer_account_id = '252486826203'
   AND
-  billingperiod = from_iso8601_date('2018-10-01')
+  billing_period = from_iso8601_date('2018-10-01')
 GROUP BY
-  lineitem_resourceid,
-  lineitem_productcode,
+  line_item_resource_id,
+  line_item_product_code,
   product_region
 )
 
 SELECT 
-  lineitem_productcode As Service,
+  line_item_product_code As Service,
   product_region AS Region,
   SUM(vCPU) as vCPUs
 FROM 
   resource_vcpu
 GROUP BY
-  lineitem_productcode,
+  line_item_product_code,
   product_region

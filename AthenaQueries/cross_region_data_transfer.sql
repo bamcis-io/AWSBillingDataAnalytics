@@ -1,29 +1,29 @@
 SELECT 
-  lineitem_productcode AS Service,
-  product_fromlocation AS "From",
-  product_tolocation AS "To",
-  SUM(lineitem_unblendedcost) AS InterRegionDataTransferCosts,
+  line_item_product_code AS Service,
+  product_from_location AS "From",
+  product_to_location AS "To",
+  SUM(line_item_unblended_cost) AS InterRegionDataTransferCosts,
   COUNT(*) AS LineItemCount
 FROM 
   "billingdata"."cur_formatted"
 WHERE 
-  product_productfamily = 'Data Transfer'
+  product_product_family = 'Data Transfer'
   AND
-  product_tolocation != product_fromlocation 
+  product_to_location != product_from_location 
   AND 
-  product_tolocation != 'External'
+  product_to_location != 'External'
   AND
-  product_fromlocation != 'External'
+  product_from_location != 'External'
   AND
-  lineitem_usagestartdate >= from_iso8601_date('2018-10-01')
+  line_item_usage_start_date >= from_iso8601_date('2018-10-01')
   AND
-  lineitem_usagestartdate < from_iso8601_date('2018-10-12')
+  line_item_usage_start_date < from_iso8601_date('2018-10-12')
   AND
-  bill_payeraccountid = '252486826203'
+  bill_payer_account_id = '252486826203'
 GROUP BY
-  lineitem_productcode,
-  product_tolocation,
-  product_fromlocation
+  line_item_product_code,
+  product_to_location,
+  product_from_location
 ORDER BY 
   InterRegionDataTransferCosts,
   LineItemCount
