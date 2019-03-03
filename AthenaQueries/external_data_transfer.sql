@@ -14,7 +14,7 @@ WHERE
   AND
   billing_period = from_iso8601_date('2018-10-01')
 GROUP BY
-  line_item_productcode,
+  line_item_product_code,
   product_from_location
 ORDER BY 
   ExternalDataTransferCosts,
