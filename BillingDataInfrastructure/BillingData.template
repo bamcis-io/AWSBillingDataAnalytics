@@ -754,9 +754,9 @@
                     "Name" : "glueetl",
                     "ScriptLocation" : {
 						"Fn::If" : [
-							"SpecifiedCSVScriptLocation",
+							"SpecifiedParquetScriptLocation",
 							{
-								"Ref" : "CSVScriptLocation"
+								"Ref" : "ParquetScriptLocation"
 							},
 							{
 								"Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_parquet.py"
