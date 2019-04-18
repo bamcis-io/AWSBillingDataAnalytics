@@ -1,0 +1,20 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - cd BillingDataInfrastructure
+      
+  build:
+    commands:
+      - echo Build started on `date`
+      - mv BillingData.template $PROJECT_NAME.template
+      - echo { \"Parameters\" : { \"CSVScriptLocation\" : \"s3://$BUCKET/cur_etl_csv.py\", \"ParquetScriptLocation\" : \"s3://$BUCKET/cur_etl_parquet.py\" } } >> "CloudFormationConfig.json"
+
+artifacts:
+  name: BuildOutput
+  files:
+    - BillingDataInfrastructure/$PROJECT_NAME.template
+    - BillingDataInfrastructure/cur_etl_csv.py
+    - BillingDataInfrastructure/cur_etl_parquet.py
+    - BillingDataInfrastructure/CloudFormationConfig.json
+  discard-paths: yes  

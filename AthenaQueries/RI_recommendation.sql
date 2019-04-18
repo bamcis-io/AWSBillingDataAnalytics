@@ -78,6 +78,13 @@ AS
 				AND 
 			 regexp_like(product_usage_type,'\bWriteCapacityUnit-Hrs|\bReadCapacityUnit-Hrs')
 			) -- DynamoDB read/write capacity units 
+
+			OR
+
+			(product_service_code = 'AmazonES'
+				AND 
+			 regexp_like(product_usage_type,'ESInstance')
+			 ) -- Elasticsearch instance usage
 		)
         AND
             line_item_usage_start_date >= var.start_date

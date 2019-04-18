@@ -17,7 +17,16 @@
     <Compile Include="BillingData.template">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="buildspec.yml">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="buildspec-test.yml">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="cur_etl_parquet.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pipeline-overrides.json">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="README.md">

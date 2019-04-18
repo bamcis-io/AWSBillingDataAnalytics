@@ -46,9 +46,45 @@
             "Type" : "String",
             "Default" : "cur_formatted",
             "MinLength" : 1
-        }
+        },
+		"CSVScriptLocation" : {
+			"Type" : "String",
+			"Description" : "Specify an s3 location where the python script for processing CSV files exists in the s3://bucket/path/object.py format. If you leave this blank, the default s3 location for glue is used.",
+			"AllowedPattern" : "(?:^$|^s3://[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]/.*$)"
+		},
+		"ParquetScriptLocation" : {
+			"Type" : "String",
+			"Description" : "Specify an s3 location where the python script for processing Parquet files exists in the s3://bucket/path/object.py format. If you leave this blank, the default s3 location for glue is used.",
+			"AllowedPattern" : "(?:^$|^s3://[a-z](?:(?:\\.(?!\\.))|-|[a-zA-Z0-9]){1,61}[a-z]/.*$)"
+		}
     },
 
+	"Conditions" : {
+		"SpecifiedCSVScriptLocation" : {
+			"Fn::Not" : [
+				{
+					"Fn::Equals" : [
+						{
+							"Ref" : "CSVScriptLocation"
+						},
+						""
+					]
+				}
+			]
+		},
+		"SpecifiedParquetScriptLocation" : {
+			"Fn::Not" : [
+				{
+					"Fn::Equals" : [
+						{
+							"Ref" : "ParquetScriptLocation"
+						},
+						""
+					]
+				}
+			]
+		}
+	},
 
     "Resources"                : {
         "AWSGlueServiceRole" : {
@@ -681,7 +717,15 @@
                 "Command"           : {
                     "Name" : "glueetl",
                     "ScriptLocation" : {
-                        "Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_csv.py"
+						"Fn::If" : [
+							"SpecifiedCSVScriptLocation",
+							{
+								"Ref" : "CSVScriptLocation"
+							},
+							{
+								"Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_csv.py"
+							}
+						]                 
                     }
                 }
             }
@@ -709,7 +753,15 @@
                 "Command"           : {
                     "Name" : "glueetl",
                     "ScriptLocation" : {
-                        "Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_parquet.py"
+						"Fn::If" : [
+							"SpecifiedCSVScriptLocation",
+							{
+								"Ref" : "CSVScriptLocation"
+							},
+							{
+								"Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_parquet.py"
+							}
+						]  
                     }
                 }
             }
