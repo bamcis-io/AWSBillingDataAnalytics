@@ -47,7 +47,7 @@ applymapping1 = ApplyMapping.apply(
     mappings = [
         ("bill_invoice_id", "string", "bill_invoice_id", "string"), 
         ("bill_bill_type", "string", "bill_bill_type", "string"), 
-        ("bill_payeraccountid", "string", "bill_payer_account_id", "string"), 
+        ("bill_payer_account_id", "string", "bill_payer_account_id", "string"), 
         ("bill_billing_period_start_date", "timestamp", "bill_billing_period_start_date", "timestamp"), 
         ("bill_billing_period_end_date", "timestamp", "bill_billing_period_end_date", "timestamp"), 
         ("line_item_usage_account_id", "string", "line_item_usage_account_id", "string"), 
