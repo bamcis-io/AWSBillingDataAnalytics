@@ -238,7 +238,7 @@
                     "Ref" : "AWS::AccountId"
                 },
                 "DatabaseName" : {
-                    "Ref" : "DatabaseName"
+                    "Ref" : "GlueDatabase"
                 },
                 "TableInput"   : {
                     "Name" : {
@@ -381,7 +381,7 @@
                     "Ref" : "AWS::AccountId"
                 },
                 "DatabaseName" : {
-                    "Ref" : "DatabaseName"
+                    "Ref" : "GlueDatabase"
                 },
                 "TableInput"   : {
                     "Name" : {
