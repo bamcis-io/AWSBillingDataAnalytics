@@ -8,7 +8,8 @@ phases:
     commands:
       - echo Build started on `date`
       - mv BillingData.template $PROJECT_NAME.template
-      - "cat >{ \"Parameters\" : { \"CSVScriptLocation\" : \"s3://$BUCKET/cur_etl_csv.py\", \"ParquetScriptLocation\" : \"s3://$BUCKET/cur_etl_parquet.py\" } } <<< CloudFormationConfig.json"
+      - json="{\"Parameters\" : { \"CSVScriptLocation\" : \"s3://$BUCKET/cur_etl_csv.py\", \"ParquetScriptLocation\" : \"s3://$BUCKET/cur_etl_parquet.py\" } }"
+      - echo $json >> CloudFormationConfig.json
 
 artifacts:
   name: BuildOutput
