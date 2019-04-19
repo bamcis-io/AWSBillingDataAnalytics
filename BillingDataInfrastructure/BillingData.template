@@ -181,9 +181,9 @@
 												{
 													"Bucket" : {
 														"Fn::Select" : [
-															"0",
+															"1",
 															{
-																"Fn::Split" : [ "s3://", { "Ref" : "CSVScriptLocation" } ]
+																"Fn::Split" : [ "://", { "Ref" : "CSVScriptLocation" } ]
 															}
 														]
 													}
@@ -212,9 +212,9 @@
 												{
 													"Bucket" : {
 														"Fn::Select" : [
-															"0",
+															"1",
 															{
-																"Fn::Split" : [ "s3://", { "Ref" : "ParquetScriptLocation" } ]
+																"Fn::Split" : [ "://", { "Ref" : "ParquetScriptLocation" } ]
 															}
 														]
 													}
