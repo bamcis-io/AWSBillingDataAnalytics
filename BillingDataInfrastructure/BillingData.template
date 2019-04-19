@@ -183,7 +183,7 @@
 														"Fn::Select" : [
 															"0",
 															{
-																"Fn::Split" : [ "s3://", "CSVScriptLocation" ]
+																"Fn::Split" : [ "s3://", { "Ref" : "CSVScriptLocation" } ]
 															}
 														]
 													}
@@ -214,7 +214,7 @@
 														"Fn::Select" : [
 															"0",
 															{
-																"Fn::Split" : [ "s3://", "ParquetScriptLocation" ]
+																"Fn::Split" : [ "s3://", { "Ref" : "ParquetScriptLocation" } ]
 															}
 														]
 													}
