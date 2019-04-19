@@ -142,7 +142,10 @@
                                 },
                                 {
                                     "Fn::Sub" : "arn:aws:s3:::${PriceListBucket}/*"
-                                }
+                                },
+								{
+									"Fn::Sub" : "arn:aws:s3:::aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/*"
+								}
                             ]
                         },
                         {
