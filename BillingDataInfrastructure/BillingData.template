@@ -162,7 +162,69 @@
                                     "Fn::Sub" : "arn:aws:s3:::${FormattedBillingFileS3Bucket}"
                                 }
                             ]
-                        }
+                        },
+						{
+							"Fn::If" : [
+								"SpecifiedCSVScriptLocation",
+								{
+									"Effect" : "Allow",
+									"Action" : [
+										"s3:GetObject"
+									],
+									"Resource" : [
+										{
+											"Fn::Sub" : [
+												"arn:aws:s3:::${Bucket}",
+												{
+													"Bucket" : {
+														"Fn::Select" : [
+															"1",
+															{
+																"Fn::Split" : [ "s3://", "CSVScriptLocation" ]
+															}
+														]
+													}
+												}
+											]
+										}
+									]
+								},
+								{
+									"Ref" : "AWS::NoValue"
+								}
+							]
+						},
+						{
+							"Fn::If" : [
+								"SpecifiedParquetScriptLocation",
+								{
+									"Effect" : "Allow",
+									"Action" : [
+										"s3:GetObject"
+									],
+									"Resource" : [
+										{
+											"Fn::Sub" : [
+												"arn:aws:s3:::${Bucket}",
+												{
+													"Bucket" : {
+														"Fn::Select" : [
+															"1",
+															{
+																"Fn::Split" : [ "s3://", "ParquetScriptLocation" ]
+															}
+														]
+													}
+												}
+											]
+										}
+									]
+								},
+								{
+									"Ref" : "AWS::NoValue"
+								}
+							]
+						}
                     ]
                 },
                 "Roles"          : [
