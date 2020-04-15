@@ -34,6 +34,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ddb_reserved_capacity.sql">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="p2.8xlarge_bad_deal.sql">
       <SubType>Content</SubType>
     </Content>
