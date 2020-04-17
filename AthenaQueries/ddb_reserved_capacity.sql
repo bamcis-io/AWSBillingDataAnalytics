@@ -11,14 +11,14 @@ AS
     SELECT
         CAST(start_date as DATE) AS start_date,
         CAST(end_date as DATE) AS end_date,
-        payer_accountid,
+        accountid,
         reserved_capacity_block_size
     FROM
         (
           VALUES
           ('2020-01-01', '2020-01-31', '252486826203', 100)
         )
-        AS t1(start_date, end_date, payer_accountid, reserved_capacity_block_size)
+        AS t1(start_date, end_date, accountid, reserved_capacity_block_size)
 ),
 
     usage_by_region
@@ -49,7 +49,7 @@ AS
         AND
             line_item_usage_start_date < var.end_date 
         AND 
-            bill_payer_account_id = var.payer_accountid
+            line_item_usage_account_id = var.accountid
      GROUP BY 
          product_region, product_usagetype
 ),
@@ -83,23 +83,20 @@ AS
 )
 
 SELECT 
-    rip.service as Service,
-    rip.platform as Platform,
-    rip.operatingsystem as OperatingSystem,
-    rip.instancetype as InstanceType,
-    rip.region as Location,   
-    rip.ondemandhourlycost * reserved_capacity_block_size AS OnDemand,
-    rip.upfrontfee * reserved_capacity_block_size as UpfrontFee,
-    rip.leaseterm as LeaseTerm,
-    rip.purchaseoption as PurchaseOption,
-    rip.offeringclass as OfferingClass,
-    rip.termtype as TermType,
-    rip.adjustedpriceperunit * reserved_capacity_block_size as AdjustedPricePerUnit,
-    rip.reservedinstancecost * reserved_capacity_block_size as AmortizedRICost,
-    rip.ondemandcostforterm * reserved_capacity_block_size as OnDemandCostForTerm,
-    rip.costsavings * reserved_capacity_block_size as TotalCostSavingsForTerm,
-    rip.percentsavings as PercentSavings,
-    rip.breakevenpercentage as BreakevenPercentage,
+    ddb.service as Service,
+    ddb.platform as Platform,
+    ddb.region as Location,   
+    ddb.ondemandhourlycost * reserved_capacity_block_size AS OnDemand,
+    ddb.upfrontfee * reserved_capacity_block_size as UpfrontFee,
+    ddb.leaseterm as LeaseTerm,
+    ddb.purchaseoption as PurchaseOption,
+    ddb.offeringclass as OfferingClass,
+    ddb.adjustedpriceperunit * reserved_capacity_block_size as AdjustedPricePerUnit,
+    ddb.reservedinstancecost * reserved_capacity_block_size as AmortizedRICost,
+    ddb.ondemandcostforterm * reserved_capacity_block_size as OnDemandCostForTerm,
+    ddb.costsavings * reserved_capacity_block_size as TotalCostSavingsForTerm,
+    ddb.percentsavings as PercentSavings,
+    ddb.breakevenpercentage as BreakevenPercentage,
     agg_usage.total_usage as TotalUsage,
     floor(
         COALESCE(
@@ -144,8 +141,9 @@ SELECT
     agg_usage.tables as ResourceIds,
     agg_usage.usage_per_hour_for_timespan as UsagePerHour
     
-FROM agg_usage
+FROM 
+  agg_usage
 LEFT OUTER JOIN
-     reservedinstancepricelistdata as rip
+   "pricelist_database".dynamodb_formatted AS ddb
 ON
-  agg_usage.sku = rip.sku
+  agg_usage.sku = ddb.sku

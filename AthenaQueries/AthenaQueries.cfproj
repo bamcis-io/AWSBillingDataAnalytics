@@ -20,6 +20,9 @@
     <Compile Include="cross_region_data_transfer.sql">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ddb_pricelist_reserved_capacity.sql">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="external_data_transfer.sql">
       <SubType>Code</SubType>
     </Compile>
