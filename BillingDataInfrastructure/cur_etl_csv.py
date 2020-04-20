@@ -7,6 +7,7 @@ from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.dynamicframe import DynamicFrame
 from awsglue.job import Job
+from pyspark.sql.functions import col, when
 
 ## @params: [JOB_NAME, file_path]
 args = getResolvedOptions(sys.argv, [
@@ -112,6 +113,7 @@ applymapping1 = ApplyMapping.apply(
 
 mapped_df = applymapping1.toDF()
 mapped_df = mapped_df.withColumn("billing_period", mapped_df.bill_billing_period_start_date.cast("date"))
+mapped_df = mapped_df.na.replace("product_region", "").withColumn("product_region", when(col("product_region") != "", col("product_region")).otherwise("global"))
 
 # Delete all the matching s3 objects
 s3 = boto3.resource("s3")
