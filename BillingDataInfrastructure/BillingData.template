@@ -266,10 +266,10 @@
                                 "Fn::Sub" : "arn:aws:s3:::${FormattedBillingFileS3Bucket}/*"
                             },
                             "Condition" : {
-                                "StringNotLike" : {
-                                    "aws:UserId" : [
+                                "ArnNotLike" : {
+                                    "aws:PrincipalArn" : [
                                         {
-                                            "Fn::Sub" : "${AWSGlueServiceRole.RoleId}:*"
+                                            "Fn::Sub" : "${AWSGlueServiceRole.Arn}:*"
                                         }
                                     ]
                                 }
