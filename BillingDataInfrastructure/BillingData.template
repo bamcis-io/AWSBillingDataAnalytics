@@ -286,7 +286,12 @@
                   ]
                 }
               ]
-            }
+            },
+            "Roles" : [
+              {
+                "Ref" : "AWSGlueServiceRole"
+              }
+            ]
           }
         },
 
