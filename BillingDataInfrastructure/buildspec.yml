@@ -8,10 +8,12 @@ phases:
     commands:
       - echo Build started on `date`
       - mv BillingData.template $PROJECT_NAME.template
-      - "json=\"{\\\"Parameters\\\" : { \\\"CSVScriptLocation\\\" : \\\"s3://$BUCKET/$PROJECT_NAME/cur_etl_csv.py\\\", \\\"ParquetScriptLocation\\\" : \\\"s3://$BUCKET/$PROJECT_NAME/cur_etl_parquet.py\\\" } }\""
-      - echo $json >> CloudFormationConfig.json
-      - aws s3 cp cur_etl_csv.py s3://$BUCKET/$PROJECT_NAME/cur_etl_csv.py --sse aws:kms --sse-kms-key $CODEBUILD_KMS_KEY_ID --acl bucket-owner-full-control
-      - aws s3 cp cur_etl_parquet.py s3://$BUCKET/$PROJECT_NAME/cur_etl_parquet.py --sse aws:kms --sse-kms-key $CODEBUILD_KMS_KEY_ID --acl bucket-owner-full-control
+      #- "json=\"{\\\"Parameters\\\" : { \\\"CSVScriptLocation\\\" : \\\"s3://$BUCKET/$PROJECT_NAME/cur_etl_csv.py\\\", \\\"ParquetScriptLocation\\\" : \\\"s3://$BUCKET/$PROJECT_NAME/cur_etl_parquet.py\\\" } }\""
+      #- echo $json >> CloudFormationConfig.json
+      - aws s3 cp cur_etl_csv.py s3://aws-glue-scripts-$TARGET_ACCOUNT-$AWS_REGION/admin/cur_etl_csv.py --acl bucket-owner-full-control
+      - aws s3 cp cur_etl_csv.py s3://aws-glue-scripts-$TARGET_ACCOUNT-$AWS_REGION/admin/cur_etl_parquet.py --acl bucket-owner-full-control
+      #- aws s3 cp cur_etl_csv.py s3://$BUCKET/$PROJECT_NAME/cur_etl_csv.py --sse aws:kms --sse-kms-key $CODEBUILD_KMS_KEY_ID --acl bucket-owner-full-control
+      #- aws s3 cp cur_etl_parquet.py s3://$BUCKET/$PROJECT_NAME/cur_etl_parquet.py --sse aws:kms --sse-kms-key $CODEBUILD_KMS_KEY_ID --acl bucket-owner-full-control
 
 artifacts:
   name: BuildOutput
@@ -19,5 +21,4 @@ artifacts:
     - BillingDataInfrastructure/$PROJECT_NAME.template
     - BillingDataInfrastructure/cur_etl_csv.py
     - BillingDataInfrastructure/cur_etl_parquet.py
-    - BillingDataInfrastructure/CloudFormationConfig.json
   discard-paths: yes  

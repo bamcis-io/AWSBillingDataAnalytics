@@ -1,9 +1,8 @@
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
-    
-	"Description"              : "Creates the AWS Glue resources to query billing data and price list data with Athena",
-    
-	"Parameters"               : {
+    "Description"              : "Creates the AWS Glue resources to query billing data and price list data with Athena",
+
+    "Parameters"               : {
         "PriceListBucket" : {
             "Description" : "The bucket where the price list data is stored. This bucket should already exist.",
             "Type"        : "String",
@@ -42,47 +41,47 @@
             "Default" : "reservedinstancepricelistdata",
             "MinLength" : 1
         },
-        "FormattedCURTableName"      : {
+        "FormattedCURTableName"          : {
             "Type" : "String",
             "Default" : "cur_formatted",
             "MinLength" : 1
         },
-		"CSVScriptLocation" : {
-			"Type" : "String",
-			"Description" : "Specify an s3 location where the python script for processing CSV files exists in the s3://bucket/path/object.py format. If you leave this blank, the default s3 location for glue is used."
-		},
-		"ParquetScriptLocation" : {
-			"Type" : "String",
-			"Description" : "Specify an s3 location where the python script for processing Parquet files exists in the s3://bucket/path/object.py format. If you leave this blank, the default s3 location for glue is used."
-		}
+        "CSVScriptLocation"              : {
+            "Type" : "String",
+            "Description" : "Specify an s3 location where the python script for processing CSV files exists in the s3://bucket/path/object.py format. If you leave this blank, the default s3 location for glue is used."
+        },
+        "ParquetScriptLocation"          : {
+            "Type" : "String",
+            "Description" : "Specify an s3 location where the python script for processing Parquet files exists in the s3://bucket/path/object.py format. If you leave this blank, the default s3 location for glue is used."
+        }
     },
 
-	"Conditions" : {
-		"SpecifiedCSVScriptLocation" : {
-			"Fn::Not" : [
-				{
-					"Fn::Equals" : [
-						{
-							"Ref" : "CSVScriptLocation"
-						},
-						""
-					]
-				}
-			]
-		},
-		"SpecifiedParquetScriptLocation" : {
-			"Fn::Not" : [
-				{
-					"Fn::Equals" : [
-						{
-							"Ref" : "ParquetScriptLocation"
-						},
-						""
-					]
-				}
-			]
-		}
-	},
+    "Conditions"               : {
+        "SpecifiedCSVScriptLocation" : {
+            "Fn::Not" : [
+                {
+                    "Fn::Equals" : [
+                        {
+                            "Ref" : "CSVScriptLocation"
+                        },
+                        ""
+                    ]
+                }
+            ]
+        },
+        "SpecifiedParquetScriptLocation" : {
+            "Fn::Not" : [
+                {
+                    "Fn::Equals" : [
+                        {
+                            "Ref" : "ParquetScriptLocation"
+                        },
+                        ""
+                    ]
+                }
+            ]
+        }
+    },
 
     "Resources"                : {
         "AWSGlueServiceRole" : {
@@ -125,7 +124,7 @@
                             ],
                             "Resource" : [
                                 {
-                                    "Fn::Sub" : "arn:aws:s3:::${FormattedBillingFileS3Bucket}/*"
+                                    "Fn::Sub" : "arn:${AWS::Partition}:s3:::${FormattedBillingFileS3Bucket}/*"
                                 }
                             ]
                         },
@@ -136,14 +135,28 @@
                             ],
                             "Resource" : [
                                 {
-                                    "Fn::Sub" : "arn:aws:s3:::${BillingFileBucket}/*"
+                                    "Fn::Sub" : "arn:${AWS::Partition}:s3:::${BillingFileBucket}/*"
                                 },
                                 {
-                                    "Fn::Sub" : "arn:aws:s3:::${PriceListBucket}/*"
+                                    "Fn::Sub" : "arn:${AWS::Partition}:s3:::${PriceListBucket}/*"
                                 },
-								{
-									"Fn::Sub" : "arn:aws:s3:::aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/*"
-								}
+                                {
+                                    "Fn::Sub" : "arn:${AWS::Partition}:s3:::aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/*"
+                                }
+                            ]
+                        },
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "s3:GetObject",
+                                "s3:PutObject",
+                                "s3:DeleteObject",
+                                "s3:DeleteObjectVersion"
+                            ],
+                            "Resource" : [
+                                {
+                                    "Fn::Sub" : "arn:${AWS::Partition}:s3:::aws-glue-temporary-${AWS::AccountId}-${AWS::Region}/*"
+                                }
                             ]
                         },
                         {
@@ -154,78 +167,80 @@
                             ],
                             "Resource" : [
                                 {
-                                    "Fn::Sub" : "arn:aws:s3:::${PriceListBucket}"
+                                    "Fn::Sub" : "arn:${AWS::Partition}:s3:::${PriceListBucket}"
                                 },
                                 {
-                                    "Fn::Sub" : "arn:aws:s3:::${BillingFileBucket}"
+                                    "Fn::Sub" : "arn:${AWS::Partition}:s3:::${BillingFileBucket}"
                                 },
                                 {
-                                    "Fn::Sub" : "arn:aws:s3:::${FormattedBillingFileS3Bucket}"
+                                    "Fn::Sub" : "arn:${AWS::Partition}:s3:::${FormattedBillingFileS3Bucket}"
                                 }
                             ]
                         },
-						{
-							"Fn::If" : [
-								"SpecifiedCSVScriptLocation",
-								{
-									"Effect" : "Allow",
-									"Action" : [
-										"s3:GetObject"
-									],
-									"Resource" : [
-										{
-											"Fn::Sub" : [
-												"arn:aws:s3:::${Bucket}",
-												{
-													"Bucket" : {
-														"Fn::Select" : [
-															"1",
-															{
-																"Fn::Split" : [ "://", { "Ref" : "CSVScriptLocation" } ]
-															}
-														]
-													}
-												}
-											]
-										}
-									]
-								},
-								{
-									"Ref" : "AWS::NoValue"
-								}
-							]
-						},
-						{
-							"Fn::If" : [
-								"SpecifiedParquetScriptLocation",
-								{
-									"Effect" : "Allow",
-									"Action" : [
-										"s3:GetObject"
-									],
-									"Resource" : [
-										{
-											"Fn::Sub" : [
-												"arn:aws:s3:::${Bucket}",
-												{
-													"Bucket" : {
-														"Fn::Select" : [
-															"1",
-															{
-																"Fn::Split" : [ "://", { "Ref" : "ParquetScriptLocation" } ]
-															}
-														]
-													}
-												}
-											]
-										}
-									]
-								},
-								{
-									"Ref" : "AWS::NoValue"
-								}
-							]
-						}
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "s3:GetObject"
+                            ],
+                            "Resource" : [
+                                {
+                                    "Fn::If" : [
+                                        "SpecifiedCSVScriptLocation",
+                                        {
+                                            "Fn::Sub" : [
+                                                "arn:${AWS::Partition}:s3:::${Bucket}",
+                                                {
+                                                    "Bucket" : {
+                                                        "Fn::Select" : [
+                                                            "1",
+                                                            {
+                                                                "Fn::Split" : [
+                                                                    "://",
+                                                                    {
+                                                                        "Ref" : "CSVScriptLocation"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "Fn::Sub" : "arn:${AWS::Partition}:s3:::aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/*"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Fn::If" : [
+                                        "SpecifiedParquetScriptLocation",
+                                        {
+                                            "Fn::Sub" : [
+                                                "arn:${AWS::Partition}:s3:::${Bucket}",
+                                                {
+                                                    "Bucket" : {
+                                                        "Fn::Select" : [
+                                                            "1",
+                                                            {
+                                                                "Fn::Split" : [
+                                                                    "://",
+                                                                    {
+                                                                        "Ref" : "ParquetScriptLocation"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "Fn::Sub" : "arn:${AWS::Partition}:s3:::aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/*"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
                     ]
                 },
                 "Roles"          : [
@@ -578,11 +593,11 @@
                                 "Name" : "product_description",
                                 "Type" : "string"
                             },
-							{
+                            {
                                 "Name" : "product_from_location",
                                 "Type" : "string"
                             },
-							{
+                            {
                                 "Name" : "product_from_location_type",
                                 "Type" : "string"
                             },
@@ -602,7 +617,7 @@
                                 "Name" : "product_location_type",
                                 "Type" : "string"
                             },
-							{
+                            {
                                 "Name" : "product_memory",
                                 "Type" : "string"
                             },
@@ -610,7 +625,7 @@
                                 "Name" : "product_operation",
                                 "Type" : "string"
                             },
-							{
+                            {
                                 "Name" : "product_pre_installed_sw",
                                 "Type" : "string"
                             },
@@ -634,11 +649,11 @@
                                 "Name" : "product_tenancy",
                                 "Type" : "string"
                             },
-							{
+                            {
                                 "Name" : "product_to_location",
                                 "Type" : "string"
                             },
-							{
+                            {
                                 "Name" : "product_to_location_type",
                                 "Type" : "string"
                             },
@@ -650,7 +665,7 @@
                                 "Name" : "product_usage_type",
                                 "Type" : "string"
                             },
-							{
+                            {
                                 "Name" : "product_vcpu",
                                 "Type" : "bigint"
                             },
@@ -744,7 +759,7 @@
             }
         },
 
-		"CURDataTableLoadMissingPartitionsQuery" : {
+        "CURDataTableLoadMissingPartitionsQuery" : {
             "Type" : "AWS::Athena::NamedQuery",
             "Properties" : {
                 "Database" : {
@@ -758,7 +773,7 @@
             }
         },
 
-        "BillingFileModificationJobCSV"              : {
+        "BillingFileModificationJobCSV"          : {
             "Type" : "AWS::Glue::Job",
             "Properties" : {
                 "Role" : {
@@ -780,21 +795,20 @@
                 "Command"           : {
                     "Name" : "glueetl",
                     "ScriptLocation" : {
-						"Fn::If" : [
-							"SpecifiedCSVScriptLocation",
-							{
-								"Ref" : "CSVScriptLocation"
-							},
-							{
-								"Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_csv.py"
-							}
-						]                 
+                        "Fn::If" : [
+                            "SpecifiedCSVScriptLocation",
+                            {
+                                "Ref" : "CSVScriptLocation"
+                            },
+                            {
+                                "Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_csv.py"
+                            }
+                        ]
                     }
                 }
             }
         },
-
-		"BillingFileModificationJobParquet"              : {
+        "BillingFileModificationJobParquet"      : {
             "Type" : "AWS::Glue::Job",
             "Properties" : {
                 "Role" : {
@@ -816,22 +830,20 @@
                 "Command"           : {
                     "Name" : "glueetl",
                     "ScriptLocation" : {
-						"Fn::If" : [
-							"SpecifiedParquetScriptLocation",
-							{
-								"Ref" : "ParquetScriptLocation"
-							},
-							{
-								"Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_parquet.py"
-							}
-						]  
+                        "Fn::If" : [
+                            "SpecifiedParquetScriptLocation",
+                            {
+                                "Ref" : "ParquetScriptLocation"
+                            },
+                            {
+                                "Fn::Sub" : "s3://aws-glue-scripts-${AWS::AccountId}-${AWS::Region}/admin/cur_etl_parquet.py"
+                            }
+                        ]
                     }
                 }
             }
         }
     },
-
-
     "Outputs"                  : {
     }
 }
