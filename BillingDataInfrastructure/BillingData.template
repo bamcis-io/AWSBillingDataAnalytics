@@ -829,6 +829,13 @@
                     "--enable-metrics"      : "",
                     "--TempDir"             : {
                         "Fn::Sub" : "s3://aws-glue-temporary-${AWS::AccountId}-${AWS::Region}"
+                    },
+                    "--database" : {
+                      "Ref": "GlueDatabase"
+                    },
+                    "--table" : "YYYY-MM-DD",
+                    "--destination_bucket" : {
+                      "Ref" : "FormattedBillingFileS3Bucket"
                     }
                 },
                 "ExecutionProperty" : {
@@ -865,6 +872,13 @@
                     "--enable-metrics"      : "",
                     "--TempDir"             : {
                         "Fn::Sub" : "s3://aws-glue-temporary-${AWS::AccountId}-${AWS::Region}"
+                    },
+                    "--database" : {
+                      "Ref": "GlueDatabase"
+                    },
+                    "--table" : "YYYY-MM-DD",
+                    "--destination_bucket" : {
+                      "Ref" : "FormattedBillingFileS3Bucket"
                     }
                 },
                 "ExecutionProperty" : {
