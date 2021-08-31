@@ -125,10 +125,9 @@
                 ]
             }
         },
-        "GlueS3PolicyTemp"       : {
-            "Type" : "AWS::IAM::Policy",
+        "GlueS3Policy"       : {
+            "Type" : "AWS::IAM::ManagedPolicy",
             "Properties" : {
-                "PolicyName" : "temp",
                 "PolicyDocument" : {
                     "Version" : "2012-10-17",
                     "Statement" : [
