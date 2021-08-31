@@ -815,6 +815,7 @@
         "BillingFileModificationJobCSV"          : {
             "Type" : "AWS::Glue::Job",
             "Properties" : {
+                "GlueVersion" : "3.0",
                 "Role" : {
                     "Ref" : "AWSGlueServiceRole"
                 },
@@ -850,6 +851,7 @@
         "BillingFileModificationJobParquet"      : {
             "Type" : "AWS::Glue::Job",
             "Properties" : {
+                "GlueVersion" : "3.0",
                 "Role" : {
                     "Ref" : "AWSGlueServiceRole"
                 },
